@@ -160,6 +160,7 @@ class WaveSurfer extends Player<WaveSurferEvents> {
 
   /** Create a new WaveSurfer instance */
   public static create(options: WaveSurferOptions) {
+    console.log('Using local wavesurfer.js fork!');
     return new WaveSurfer(options)
   }
 

@@ -195,7 +195,6 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
   }
 
   private initBeatgrid() {
-    debugger
     console.log("init")
     const duration = this.wavesurfer?.getDuration() ?? 0
     if (duration <= 0) return

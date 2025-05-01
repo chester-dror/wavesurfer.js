@@ -167,7 +167,13 @@ class Renderer extends EventEmitter<RendererEvents> {
 
   private initHtml(): [HTMLElement, ShadowRoot] {
     const div = document.createElement('div')
-    const shadow = div.attachShadow({ mode: 'open' })
+    Object.assign(div.style, {
+      position: 'relative'
+    })
+    const shadow_div = document.createElement('div')
+    div.appendChild(shadow_div)
+      
+    const shadow = shadow_div.attachShadow({ mode: 'open' })
 
     const cspNonce =
       this.options.cspNonce && typeof this.options.cspNonce === 'string' ? this.options.cspNonce.replace(/"/g, '') : ''
@@ -266,6 +272,10 @@ class Renderer extends EventEmitter<RendererEvents> {
 
     // Re-render the waveform
     this.reRender()
+  }
+
+  getRoot(): HTMLElement {
+    return this.container
   }
 
   getWrapper(): HTMLElement {

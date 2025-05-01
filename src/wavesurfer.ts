@@ -399,6 +399,11 @@ class WaveSurfer extends Player<WaveSurferEvents> {
   }
 
   /** For plugins only: get the waveform wrapper div */
+  public getRoot(): HTMLElement {
+    return this.renderer.getRoot()
+  }
+
+  /** For plugins only: get the waveform wrapper div */
   public getWrapper(): HTMLElement {
     return this.renderer.getWrapper()
   }

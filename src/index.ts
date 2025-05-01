@@ -3,4 +3,4 @@ export { default } from './wavesurfer';
 export * from './wavesurfer';
 
 // Export plugins
-export * as plugins from './plugins';
+export * as plugins from './plugins/index';

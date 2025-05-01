@@ -1,0 +1,57 @@
+/* Beatgrid plugin styling */
+
+/* Style the beatgrid wrapper */
+#waveform ::part(beatgrid-wrapper) {
+  border-top: 1px solid #ddd;
+}
+
+/* Style the beatgrid */
+#waveform ::part(beatgrid) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Style the beat lines */
+#waveform ::part(beatgrid) div[style*="borderLeft"] {
+  transition: opacity 0.2s ease;
+}
+
+/* Style the current position display */
+#waveform ::part(beatgrid-current-position) {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Add a hover effect to the beatgrid */
+#waveform:hover ::part(beatgrid) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Style for bar numbers */
+#waveform ::part(beatgrid) div:not([style*="borderLeft"]) {
+  color: #666;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Dark theme example */
+.dark-theme #waveform ::part(beatgrid-wrapper) {
+  border-top: 1px solid #444;
+}
+
+.dark-theme #waveform ::part(beatgrid) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme #waveform ::part(beatgrid-current-position) {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #ccc;
+}
+
+.dark-theme #waveform ::part(beatgrid) div:not([style*="borderLeft"]) {
+  color: #ccc;
+}

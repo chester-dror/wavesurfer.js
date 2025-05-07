@@ -169,7 +169,9 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
     const renderIfVisible = (scrollLeft: number, scrollRight: number) => {
       if (!this.wavesurfer) return
       const width = element.clientWidth
-      const isVisible = start > scrollLeft && start + width < scrollRight
+      // More permissive visibility check to ensure elements are visible even when partially in view
+      // or at the edges of the viewport
+      const isVisible = (start < scrollRight) && (start + width > scrollLeft)
 
       if (isVisible === wasVisible) return
       wasVisible = isVisible
@@ -360,10 +362,10 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
         zIndex: '11',
       },
     })
-    
+
     // Get position styles based on placement option
     const positionStyles = this.getPositionStyles(this.options.currentPositionPlacement)
-    
+
     this.currentPositionElement = createElement('div', {
       part: 'beatgrid-current-position',
       style: {
@@ -373,7 +375,7 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
         color: this.options.currentPositionColor,
         opacity: this.options.currentPositionOpacity.toString(),
         pointerEvents: 'none',
-        marginLeft: '-18px',  
+        marginLeft: '-18px',
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
         padding: '10px',
         borderRadius: '5px',
@@ -382,12 +384,12 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
     })
 
     console.log("adding current position element")
-    
+
     positionContainer.appendChild(this.currentPositionElement)
-    
+
     // Append to the beatgrid wrapper instead of the scrollable beatgrid
     this.waveSurferRoot.append(positionContainer)
-    
+
 
   }
 }

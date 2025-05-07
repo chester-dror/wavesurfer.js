@@ -152,7 +152,9 @@ class TimelinePlugin extends BasePlugin<TimelinePluginEvents, TimelinePluginOpti
     const renderIfVisible = (scrollLeft: number, scrollRight: number) => {
       if (!this.wavesurfer) return
       const width = element.clientWidth
-      const isVisible = start > scrollLeft && start + width < scrollRight
+      // More permissive visibility check to ensure elements are visible even when partially in view
+      // or at the edges of the viewport
+      const isVisible = (start < scrollRight) && (start + width > scrollLeft)
 
       if (isVisible === wasVisible) return
       wasVisible = isVisible

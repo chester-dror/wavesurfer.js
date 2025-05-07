@@ -141,10 +141,7 @@ class SegmentsPlugin extends BasePlugin<SegmentsPluginEvents, SegmentsPluginOpti
     const renderIfVisible = (scrollLeft: number, scrollRight: number) => {
       if (!this.wavesurfer) return
       const width = element.offsetWidth || element.getBoundingClientRect().width || parseFloat(element.style.width || '0')
-      // More permissive visibility check to ensure segments are visible even when partially in view
-      // or at the edges of the viewport
-      console.log("start: ", start, "width:", width, "scrollLeft:", scrollLeft, "scrollRight:", scrollRight, "element: ", element)
-      const isVisible = (start - 20 < scrollRight) && (start + width + 20 > scrollLeft)
+      const isVisible = (start <= scrollRight) && (start + width >= scrollLeft)
 
       if (isVisible === wasVisible) return
       wasVisible = isVisible

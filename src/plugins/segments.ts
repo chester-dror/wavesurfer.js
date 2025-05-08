@@ -45,7 +45,7 @@ const defaultColors: Record<string, string> = {
 
 const defaultOptions = {
   height: 16,
-  segments: [],
+  segments: [] as Segment[],
   colors: defaultColors,
 }
 
@@ -234,6 +234,8 @@ class SegmentsPlugin extends BasePlugin<SegmentsPluginEvents, SegmentsPluginOpti
 }
 
 export default SegmentsPlugin
+
+
 
 
 

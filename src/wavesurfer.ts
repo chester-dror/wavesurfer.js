@@ -377,6 +377,8 @@ class WaveSurfer extends Player<WaveSurferEvents> {
 
     if (options.audioRate) {
       this.setPlaybackRate(options.audioRate)
+      // Re-render the waveform to account for audioRate changes
+      this.renderer.reRender()
     }
     if (options.mediaControls != null) {
       this.getMediaElement().controls = options.mediaControls
@@ -616,6 +618,21 @@ class WaveSurfer extends Player<WaveSurferEvents> {
   /** Skip N or -N seconds from the current position */
   public skip(seconds: number) {
     this.setTime(this.getCurrentTime() + seconds)
+  }
+
+  /** Set the playback speed, pass an optional false to NOT preserve the pitch */
+  public setPlaybackRate(rate: number, preservePitch?: boolean) {
+    // Call the parent method to set the actual playback rate
+    super.setPlaybackRate(rate, preservePitch)
+
+    // Update the audioRate option
+    this.options.audioRate = rate
+
+    // Re-render the waveform to account for audioRate changes
+    this.renderer.reRender()
+
+    // Emit a zoom event to notify plugins of the change
+    this.emit('zoom', this.renderer.getEffectiveMinPxPerSec())
   }
 
   /** Empty the waveform */

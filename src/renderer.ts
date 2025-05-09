@@ -172,7 +172,7 @@ class Renderer extends EventEmitter<RendererEvents> {
     })
     const shadow_div = document.createElement('div')
     div.appendChild(shadow_div)
-      
+
     const shadow = shadow_div.attachShadow({ mode: 'open' })
 
     const cspNonce =
@@ -654,7 +654,10 @@ class Renderer extends EventEmitter<RendererEvents> {
     // Determine the width of the waveform
     const pixelRatio = this.getPixelRatio()
     const parentWidth = this.scrollContainer.clientWidth
-    const scrollWidth = Math.ceil(audioData.duration * (this.options.minPxPerSec || 0))
+    // Apply audioRate to the duration for visual scaling
+    const audioRate = this.options.audioRate || 1
+    const scaledDuration = audioData.duration / audioRate
+    const scrollWidth = Math.ceil(scaledDuration * (this.options.minPxPerSec || 0))
 
     // Whether the container should scroll
     this.isScrollable = scrollWidth > parentWidth
@@ -723,6 +726,12 @@ class Renderer extends EventEmitter<RendererEvents> {
   zoom(minPxPerSec: number) {
     this.options.minPxPerSec = minPxPerSec
     this.reRender()
+  }
+
+  /** Get the effective pixels per second, accounting for audioRate */
+  getEffectiveMinPxPerSec(): number {
+    const audioRate = this.options.audioRate || 1
+    return (this.options.minPxPerSec || 0) * audioRate
   }
 
   private scrollIntoView(progress: number, isPlaying = false) {

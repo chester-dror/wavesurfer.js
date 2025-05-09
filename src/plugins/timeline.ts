@@ -93,7 +93,11 @@ class TimelinePlugin extends BasePlugin<TimelinePluginEvents, TimelinePluginOpti
       container.appendChild(this.timelineWrapper)
     }
 
-    this.subscriptions.push(this.wavesurfer.on('redraw', () => this.initTimeline()))
+    this.subscriptions.push(
+      this.wavesurfer.on('redraw', () => this.initTimeline()),
+      // Listen for zoom events which are also triggered when audioRate changes
+      this.wavesurfer.on('zoom', () => this.initTimeline())
+    )
 
     if (this.wavesurfer?.getDuration() || this.options.duration) {
       this.initTimeline()
@@ -181,7 +185,10 @@ class TimelinePlugin extends BasePlugin<TimelinePluginEvents, TimelinePluginOpti
 
   private initTimeline() {
     const duration = this.wavesurfer?.getDuration() ?? this.options.duration ?? 0
-    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.timelineWrapper.scrollWidth) / duration
+    // Account for audioRate when calculating the timeline
+    const audioRate = this.wavesurfer?.options.audioRate || 1
+    const scaledDuration = duration / audioRate
+    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.timelineWrapper.scrollWidth) / scaledDuration
     const timeInterval = this.options.timeInterval ?? this.defaultTimeInterval(pxPerSec)
     const primaryLabelInterval = this.options.primaryLabelInterval ?? this.defaultPrimaryLabelInterval(pxPerSec)
     const primaryLabelSpacing = this.options.primaryLabelSpacing

@@ -57,6 +57,9 @@ wavesurfer.on('ready', () => {
     color: 'rgba(255, 0, 0, 0.2)',
     content: '1 second reference',
   })
+  
+  // Display initial total duration
+  document.querySelector('#totalTime').textContent = wavesurfer.getDuration().toFixed(2)
 })
 
 // Play on click
@@ -67,6 +70,8 @@ wavesurfer.on('interaction', () => {
 // Display current time
 wavesurfer.on('timeupdate', (currentTime) => {
   document.querySelector('#currentTime').textContent = currentTime.toFixed(2)
+  // Update total duration in real-time
+  document.querySelector('#totalTime').textContent = wavesurfer.getDuration().toFixed(2)
 })
 
 // Set up UI controls
@@ -81,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rate = parseFloat(e.target.value)
     document.querySelector('#rateValue').textContent = rate.toFixed(2)
     wavesurfer.setPlaybackRate(rate)
+    // Duration will be updated via the timeupdate event
   })
 
   // Zoom slider
@@ -148,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     
     <div class="info">
-      Current Time: <span id="currentTime">0.00</span>s
+      Current Time: <span id="currentTime">0.00</span>s | Total Duration: <span id="totalTime">0.00</span>s
     </div>
   </div>
   
@@ -169,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .controls {
       margin: 1rem 0;
       padding: 1rem;
-      background: #f5f5f5;
       border-radius: 4px;
     }
     .control-group {
@@ -185,9 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
     .explanation {
       margin-top: 2rem;
       padding: 1rem;
-      background: #f0f8ff;
       border-radius: 4px;
     }
   </style>
 </html>
 */
+
+
+
+

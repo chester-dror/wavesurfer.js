@@ -185,10 +185,7 @@ class TimelinePlugin extends BasePlugin<TimelinePluginEvents, TimelinePluginOpti
 
   private initTimeline() {
     const duration = this.wavesurfer?.getDuration() ?? this.options.duration ?? 0
-    // Account for audioRate when calculating the timeline
-    const audioRate = this.wavesurfer?.options.audioRate || 1
-    const scaledDuration = duration / audioRate
-    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.timelineWrapper.scrollWidth) / scaledDuration
+    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.timelineWrapper.scrollWidth) / duration
     const timeInterval = this.options.timeInterval ?? this.defaultTimeInterval(pxPerSec)
     const primaryLabelInterval = this.options.primaryLabelInterval ?? this.defaultPrimaryLabelInterval(pxPerSec)
     const primaryLabelSpacing = this.options.primaryLabelSpacing
@@ -273,3 +270,4 @@ class TimelinePlugin extends BasePlugin<TimelinePluginEvents, TimelinePluginOpti
 }
 
 export default TimelinePlugin
+

@@ -199,18 +199,19 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
   }
 
   private initBeatgrid() {
-    console.log("init")
     const duration = this.wavesurfer?.getDuration() ?? 0
     if (duration <= 0) return
-
-    // Account for audioRate when calculating the beatgrid
-    const audioRate = this.wavesurfer?.options.audioRate || 1
-    const scaledDuration = duration / audioRate
-    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.beatgridWrapper.scrollWidth) / scaledDuration
+    const pxPerSec = (this.wavesurfer?.getWrapper().scrollWidth || this.beatgridWrapper.scrollWidth) / duration
     const { bpm, offset, beatsPerBar, showVerticalLines, fullHeightLines, showBarNumbers } = this.options
 
-    // Calculate seconds per beat
-    const secPerBeat = 60 / bpm
+    // Get the current audioRate
+    const audioRate = this.wavesurfer?.options.audioRate || 1
+
+    // Calculate seconds per beat (adjusted for audioRate)
+    const secPerBeat = 60 / (bpm * audioRate)
+
+    // Adjust offset by audioRate since it's a time value
+    const adjustedOffset = offset / audioRate
 
     // Create the beatgrid container
     const beatgrid = createElement('div', {
@@ -256,11 +257,11 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
     })
 
     // Calculate the total number of beats in the audio
-    const totalBeats = Math.ceil((duration - offset) / secPerBeat) + 1
+    const totalBeats = Math.ceil((duration - adjustedOffset) / secPerBeat) + 1
 
     // Draw beat and bar lines
     for (let i = 0; i < totalBeats; i++) {
-      const beatTime = offset + i * secPerBeat
+      const beatTime = adjustedOffset + i * secPerBeat
       if (beatTime > duration) break
 
       const isBar = i % beatsPerBar === 0
@@ -298,16 +299,17 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
 
     const { bpm, offset, beatsPerBar } = this.options
 
-    // Account for audioRate when calculating the current position
+    // Get the current audioRate
     const audioRate = this.wavesurfer?.options.audioRate || 1
 
     // Calculate seconds per beat (adjusted for audioRate)
-    const secPerBeat = 60 / bpm
+    // When playback is faster, beats should be detected more frequently
+    const secPerBeat = 60 / (bpm * audioRate)
 
     // Calculate the current beat position
-    // We don't adjust currentTime by audioRate here because the actual audio position
-    // is already affected by the playback rate
-    const beatPosition = Math.max(0, currentTime - offset) / secPerBeat
+    // Adjust offset by audioRate since it's a time value
+    const adjustedOffset = offset / audioRate
+    const beatPosition = Math.max(0, currentTime - adjustedOffset) / secPerBeat
 
     // Calculate bar and beat
     const bar = Math.floor(beatPosition / beatsPerBar) + 1
@@ -405,6 +407,8 @@ class BeatgridPlugin extends BasePlugin<BeatgridPluginEvents, BeatgridPluginOpti
 }
 
 export default BeatgridPlugin
+
+
 
 
 

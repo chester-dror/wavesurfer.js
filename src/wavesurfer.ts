@@ -478,7 +478,9 @@ class WaveSurfer extends Player<WaveSurferEvents> {
     if (!url && !blob) {
       const media = this.getMediaElement()
       if (media instanceof WebAudioPlayer) {
-        media.duration = audioDuration
+        // Use the raw duration (not rate-adjusted) for the WebAudioPlayer
+        const audioRate = this.options.audioRate || 1
+        media.duration = audioDuration * audioRate
       }
     }
 
@@ -564,7 +566,9 @@ class WaveSurfer extends Player<WaveSurferEvents> {
     if ((duration === 0 || duration === Infinity) && this.decodedData) {
       duration = this.decodedData.duration
     }
-    return duration
+    // Adjust duration by audioRate to be consistent with currentTime
+    const audioRate = this.options.audioRate || 1
+    return duration / audioRate
   }
 
   /** Toggle if the waveform should react to clicks */
@@ -622,17 +626,32 @@ class WaveSurfer extends Player<WaveSurferEvents> {
 
   /** Set the playback speed, pass an optional false to NOT preserve the pitch */
   public setPlaybackRate(rate: number, preservePitch?: boolean) {
+    // Store the current time and old rate before changing
+    const currentTime = this.getCurrentTime();
+    const oldRate = this.options.audioRate || 1;
+    
     // Call the parent method to set the actual playback rate
     super.setPlaybackRate(rate, preservePitch)
 
     // Update the audioRate option
     this.options.audioRate = rate
+    
+    // Adjust current time to maintain the same content position
+    // (only if we're not at the beginning)
+    if (currentTime > 0) {
+      // Calculate the new time position that corresponds to the same audio content
+      const newTime = currentTime * (oldRate / rate);
+      this.setTime(newTime);
+      
+      // Emit seeking event since we've changed the position
+      this.emit('seeking', newTime)
+    } else {
+      // Even if we didn't seek, emit timeupdate to notify of rate change
+      this.emit('timeupdate', this.getCurrentTime())
+    }
 
     // Re-render the waveform to account for audioRate changes
     this.renderer.reRender()
-
-    // Emit a zoom event to notify plugins of the change
-    this.emit('zoom', this.renderer.getEffectiveMinPxPerSec())
   }
 
   /** Empty the waveform */
@@ -679,3 +698,5 @@ class WaveSurfer extends Player<WaveSurferEvents> {
 }
 
 export default WaveSurfer
+
+

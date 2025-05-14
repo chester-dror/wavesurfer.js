@@ -811,7 +811,7 @@ class Renderer extends EventEmitter<RendererEvents> {
     const sampleRate = audioBuffer.sampleRate
 
     // FFT parameters
-    const fftSize = 128 // Larger FFT size for better frequency resolution
+    const fftSize = this.options.fftSize || 128; // Larger FFT size for better frequency resolution
     const hopSize = Math.floor(fftSize / 4) // 75% overlap
 
     // Create FFT object using fft.js
@@ -930,7 +930,7 @@ class Renderer extends EventEmitter<RendererEvents> {
     const sampleRate = audioBuffer.sampleRate
 
     // FFT parameters
-    const fftSize = 128 // Larger FFT size for better frequency resolution
+    const fftSize = this.options.fftSize || 128; // Larger FFT size for better frequency resolution
     const hopSize = Math.floor(fftSize / 4) // 75% overlap
 
     // Create FFT object using fft.js
@@ -1158,7 +1158,7 @@ class Renderer extends EventEmitter<RendererEvents> {
     // Analyze audio based on the selected type if colorization is enabled
     if (this.options.colorizeByBrightness) {
       // Determine number of segments based on width, ensuring segments are large enough for FFT
-      const fftSize = 128; // Must match the fftSize in analyzeBrightness/analyzeProminentFrequency
+      const fftSize = this.options.fftSize || 128; // Must match the fftSize in analyzeBrightness/analyzeProminentFrequency
       const maxPossibleSegments = Math.floor(audioData.length / fftSize);
       const segmentsBasedOnWidth = Math.max(100, Math.ceil(width / pixelRatio / 5)); // One segment per 5 pixels
       const numberOfSegments = Math.min(maxPossibleSegments, segmentsBasedOnWidth);

@@ -88,7 +88,7 @@ export type WaveSurferOptions = {
   colorAnalysisType?: 'brightness' | 'prominentFrequency'
    /** A power value to apply to the normalized brightness/frequency values to stretch the distribution (e.g., 0.5 for stretching lower values) */
   normalizationPower?: number
-  /** The size of the FFT window for spectral analysis. Must be a power of 2. Defaults to 2048. */
+  /** The size of the FFT window for spectral analysis. Must be a power of 2. Defaults to 128. */
   fftSize?: number
 }
 
@@ -112,7 +112,7 @@ const defaultOptions = {
     { stop: 1, color: 'rgb(0, 191, 255)' }     // High brightness -> Deep Sky Blue
   ],
   colorAnalysisType: 'brightness', // Default to brightness
-  fftSize: 2048, // Default FFT size
+  fftSize: 128, // Default FFT size
 }
 
 export type WaveSurferEvents = {

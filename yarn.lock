@@ -1164,6 +1164,11 @@
   dependencies:
     "pend" "~1.2.0"
 
+"fft.js@^4.0.4":
+  "integrity" "sha512-f9c00hphOgeQTlDyavwTtu6RiK8AIFjD6+jvXkNkpeQ7rirK3uFWVpalkoS4LAwbdX7mfZ8aoBfFVQX1Re/8aw=="
+  "resolved" "https://registry.npmjs.org/fft.js/-/fft.js-4.0.4.tgz"
+  "version" "4.0.4"
+
 "figures@^3.2.0":
   "integrity" "sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg=="
   "resolved" "https://registry.npmjs.org/figures/-/figures-3.2.0.tgz"

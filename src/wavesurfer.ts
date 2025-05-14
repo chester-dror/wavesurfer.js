@@ -80,6 +80,16 @@ export type WaveSurferOptions = {
   cspNonce?: string
   /** Override the Blob MIME type */
   blobMimeType?: string
+  /** Enable coloring the waveform based on audio brightness (spectral centroid) */
+  colorizeByBrightness?: boolean
+  /** Color stops for brightness-based coloring, each with a stop value (0-1) and a color */
+  brightnessColors?: Array<{ stop: number, color: string }>
+  /** The type of audio analysis to use for coloring, either 'brightness' (spectral centroid) or 'prominentFrequency' */
+  colorAnalysisType?: 'brightness' | 'prominentFrequency'
+   /** A power value to apply to the normalized brightness/frequency values to stretch the distribution (e.g., 0.5 for stretching lower values) */
+  normalizationPower?: number
+  /** The size of the FFT window for spectral analysis. Must be a power of 2. Defaults to 2048. */
+  fftSize?: number
 }
 
 const defaultOptions = {
@@ -93,6 +103,16 @@ const defaultOptions = {
   autoScroll: true,
   autoCenter: true,
   sampleRate: 8000,
+  colorizeByBrightness: false,
+  brightnessColors: [
+    { stop: 0, color: 'rgb(255, 0, 0)' },     // Low brightness -> Red
+    { stop: 0.25, color: 'rgb(255, 165, 0)' }, // Low-Mid -> Orange
+    { stop: 0.5, color: 'rgb(255, 255, 0)' },  // Mid -> Yellow
+    { stop: 0.75, color: 'rgb(0, 255, 0)' },   // Mid-High -> Green
+    { stop: 1, color: 'rgb(0, 191, 255)' }     // High brightness -> Deep Sky Blue
+  ],
+  colorAnalysisType: 'brightness', // Default to brightness
+  fftSize: 2048, // Default FFT size
 }
 
 export type WaveSurferEvents = {
@@ -629,20 +649,20 @@ class WaveSurfer extends Player<WaveSurferEvents> {
     // Store the current time and old rate before changing
     const currentTime = this.getCurrentTime();
     const oldRate = this.options.audioRate || 1;
-    
+
     // Call the parent method to set the actual playback rate
     super.setPlaybackRate(rate, preservePitch)
 
     // Update the audioRate option
     this.options.audioRate = rate
-    
+
     // Adjust current time to maintain the same content position
     // (only if we're not at the beginning)
     if (currentTime > 0) {
       // Calculate the new time position that corresponds to the same audio content
       const newTime = currentTime * (oldRate / rate);
       this.setTime(newTime);
-      
+
       // Emit seeking event since we've changed the position
       this.emit('seeking', newTime)
     } else {
@@ -698,5 +718,3 @@ class WaveSurfer extends Player<WaveSurferEvents> {
 }
 
 export default WaveSurfer
-
-

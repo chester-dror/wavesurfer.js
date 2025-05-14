@@ -35,7 +35,6 @@ class Renderer extends EventEmitter<RendererEvents> {
   private subscriptions: (() => void)[] = []
   private unsubscribeOnScroll: (() => void)[] = []
   private brightnessData: number[] = []
-  private prominentFrequencyData: number[] = [] // New property
 
   constructor(options: WaveSurferOptions, audioElement?: HTMLElement) {
     super()
@@ -452,10 +451,8 @@ class Renderer extends EventEmitter<RendererEvents> {
           this.brightnessData.length - 1,
           Math.floor((barCount / (width / (barWidth + barGap))) * this.brightnessData.length)
         )
-        // Get the analysis data based on the selected type
-        const analysisData = this.options.colorAnalysisType === 'prominentFrequency' ? this.prominentFrequencyData : this.brightnessData;
         // Get the analysis value for this bar
-        const analysisValue = analysisData[brightnessIndex];
+        const analysisValue = this.brightnessData[brightnessIndex];
 
         // Set color based on the analysis value
         ctx.fillStyle = this.getColorValue(analysisValue, options.brightnessColors || []);
@@ -536,8 +533,8 @@ class Renderer extends EventEmitter<RendererEvents> {
     const halfHeight = height / 2
     const segmentWidth = Math.max(1, Math.ceil(width / this.brightnessData.length))
 
-    // Store original fill style
-    const defaultFillStyle = ctx.fillStyle
+    // Store original stroke style
+    const defaultStrokeStyle = ctx.strokeStyle
 
     // Draw each segment with its own color
     for (let segmentIndex = 0; segmentIndex < this.brightnessData.length; segmentIndex++) {
@@ -546,13 +543,11 @@ class Renderer extends EventEmitter<RendererEvents> {
 
       if (startX >= width) break
 
-      // Get the analysis data based on the selected type
-      const analysisData = this.options.colorAnalysisType === 'prominentFrequency' ? this.prominentFrequencyData : this.brightnessData;
       // Get the analysis value for this segment
-      const analysisValue = analysisData[segmentIndex];
+      const analysisValue = this.brightnessData[segmentIndex];
 
       // Set color based on the analysis value
-      ctx.fillStyle = this.getColorValue(analysisValue, options.brightnessColors || []);
+      ctx.strokeStyle = this.getColorValue(analysisValue, options.brightnessColors || []);
 
       // Calculate which part of the channel data corresponds to this segment
       const channel0 = channelData[0]
@@ -604,13 +599,13 @@ class Renderer extends EventEmitter<RendererEvents> {
         if (value > max) max = value
       }
 
-      ctx.lineTo(endX, halfHeight)
-      ctx.fill()
+      // Stroke the path for this segment
+      ctx.stroke()
       ctx.closePath()
     }
 
-    // Restore the default fill style
-    ctx.fillStyle = defaultFillStyle
+    // Restore the default stroke style
+    ctx.strokeStyle = defaultStrokeStyle
   }
 
   private renderWaveform(
@@ -916,109 +911,6 @@ class Renderer extends EventEmitter<RendererEvents> {
     }
     console.log("Normalized Brightness Data (after power transform):", this.brightnessData);
   }
-  /**
-   * Analyze audio prominent frequency for each segment of the waveform
-   * @param audioBuffer The audio buffer to analyze
-   * @param numberOfSegments The number of segments to divide the audio into
-   */
-  private analyzeProminentFrequency(audioBuffer: AudioBuffer, numberOfSegments: number): void {
-    // Reset prominent frequency data
-    this.prominentFrequencyData = []
-
-    // Use the first channel for analysis
-    const channelData = audioBuffer.getChannelData(0)
-    const sampleRate = audioBuffer.sampleRate
-
-    // FFT parameters
-    const fftSize = this.options.fftSize || 128; // Larger FFT size for better frequency resolution
-    const hopSize = Math.floor(fftSize / 4) // 75% overlap
-
-    // Create FFT object using fft.js
-    const fft = new FFT(fftSize)
-    const fftInput = fft.createComplexArray()
-    const fftOutput = fft.createComplexArray()
-
-    // Calculate segment size in samples
-    const segmentSize = Math.floor(channelData.length / numberOfSegments)
-
-    // Arrays to store all prominent frequency values for normalization
-    const rawProminentFrequencyValues = []
-
-    // Process each segment
-    for (let segmentIndex = 0; segmentIndex < numberOfSegments; segmentIndex++) {
-      const segmentStart = segmentIndex * segmentSize
-      const segmentEnd = Math.min(segmentStart + segmentSize, channelData.length)
-
-      // Skip if segment is too small
-      if (segmentEnd - segmentStart < fftSize) {
-        rawProminentFrequencyValues.push(sampleRate / 4) // Default middle frequency (arbitrary)
-        continue
-      }
-
-      // Find prominent frequency for this segment
-      let totalProminentFrequency = 0 // Sum of prominent frequencies across frames
-      let framesCount = 0
-
-      // Process frames within the segment with overlap
-      for (let frameStart = segmentStart; frameStart + fftSize <= segmentEnd; frameStart += hopSize) {
-        // Extract frame and prepare input for FFT
-        for (let i = 0; i < fftSize; i++) {
-          // Apply Hann window function
-          const windowValue = 0.5 * (1 - Math.cos(2 * Math.PI * i / (fftSize - 1)))
-          // Real part (windowed sample)
-          fftInput[i * 2] = channelData[frameStart + i] * windowValue
-          // Imaginary part (zero)
-          fftInput[i * 2 + 1] = 0
-        }
-
-        // Perform FFT
-        fft.transform(fftOutput, fftInput)
-
-        // Find the bin with the maximum magnitude (excluding DC component at bin 0)
-        let maxMagnitude = 0
-        let prominentBin = 0
-        for (let i = 1; i < fftSize / 2; i++) { // Only consider positive frequencies
-          const real = fftOutput[i * 2]
-          const imag = fftOutput[i * 2 + 1]
-          const magnitude = Math.sqrt(real * real + imag * imag)
-
-          if (magnitude > maxMagnitude) {
-            maxMagnitude = magnitude
-            prominentBin = i
-          }
-        }
-
-        // Calculate the frequency of the prominent bin
-        const prominentFrequency = (prominentBin * sampleRate) / fftSize;
-
-        totalProminentFrequency += prominentFrequency
-        framesCount++
-      }
-
-      // Average prominent frequency for this segment
-      const avgProminentFrequency = framesCount > 0 ? totalProminentFrequency / framesCount : sampleRate / 4 // Default
-
-      // Store raw prominent frequency value
-      rawProminentFrequencyValues.push(avgProminentFrequency)
-    }
-
-    // Ensure we have at least one prominent frequency value
-    if (rawProminentFrequencyValues.length === 0) {
-      this.prominentFrequencyData.push(0.5) // Default normalized value
-      return
-    }
-
-    // Find min and max values for better normalization
-    const minProminentFrequency = Math.min(...rawProminentFrequencyValues)
-    const maxProminentFrequency = Math.max(...rawProminentFrequencyValues)
-
-    // Calculate range and ensure it's not zero
-    const range = maxProminentFrequency - minProminentFrequency > 0.001 ? maxProminentFrequency - minProminentFrequency : 1
-
-    // Normalize values to spread across the full 0-1 range
-    this.prominentFrequencyData = rawProminentFrequencyValues.map(value => (value - minProminentFrequency) / range)
-  }
-
 
   /**
    * Get color for a brightness value based on the color stops
@@ -1158,7 +1050,7 @@ class Renderer extends EventEmitter<RendererEvents> {
     // Analyze audio based on the selected type if colorization is enabled
     if (this.options.colorizeByBrightness) {
       // Determine number of segments based on width, ensuring segments are large enough for FFT
-      const fftSize = this.options.fftSize || 128; // Must match the fftSize in analyzeBrightness/analyzeProminentFrequency
+      const fftSize = this.options.fftSize || 128; // Must match the fftSize in analyzeBrightness
       const maxPossibleSegments = Math.floor(audioData.length / fftSize);
       const segmentsBasedOnWidth = Math.max(100, Math.ceil(width / pixelRatio / 5)); // One segment per 5 pixels
       const numberOfSegments = Math.min(maxPossibleSegments, segmentsBasedOnWidth);
@@ -1166,17 +1058,10 @@ class Renderer extends EventEmitter<RendererEvents> {
       // Ensure at least one segment if audio data is available
       const finalNumberOfSegments = Math.max(1, numberOfSegments);
 
-      if (this.options.colorAnalysisType === 'prominentFrequency') {
-        this.analyzeProminentFrequency(audioData, finalNumberOfSegments)
-        this.brightnessData = [] // Clear brightness data
-      } else { // Default to brightness
-        this.analyzeBrightness(audioData, finalNumberOfSegments)
-        this.prominentFrequencyData = [] // Clear prominent frequency data
-      }
+      this.analyzeBrightness(audioData, finalNumberOfSegments)
     } else {
       // Clear all analysis data if colorization is not enabled
       this.brightnessData = []
-      this.prominentFrequencyData = []
     }
 
     this.emit('render')

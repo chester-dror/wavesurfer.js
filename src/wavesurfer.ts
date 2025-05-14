@@ -84,8 +84,8 @@ export type WaveSurferOptions = {
   colorizeByBrightness?: boolean
   /** Color stops for brightness-based coloring, each with a stop value (0-1) and a color */
   brightnessColors?: Array<{ stop: number, color: string }>
-  /** The type of audio analysis to use for coloring, either 'brightness' (spectral centroid) or 'prominentFrequency' */
-  colorAnalysisType?: 'brightness' | 'prominentFrequency'
+  /** The type of audio analysis to use for coloring, either 'brightness' (spectral centroid) */
+  colorAnalysisType?: 'brightness'
    /** A power value to apply to the normalized brightness/frequency values to stretch the distribution (e.g., 0.5 for stretching lower values) */
   normalizationPower?: number
   /** The size of the FFT window for spectral analysis. Must be a power of 2. Defaults to 128. */
